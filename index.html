@@ -34,6 +34,13 @@
   input, select, button, #entry-form, .actions, #toggle-theme { display:none !important; }
 }
 
+
+.saat-goster { display: none; }
+@media print {
+  .saat-guncelle { display: none !important; }
+  .saat-goster { display: inline-block !important; font-weight: bold; }
+}
+
 </style>
 </head>
 <body>
@@ -76,6 +83,10 @@
       });
       listelerDiv.innerHTML = '';
       Object.keys(gruplu).sort().forEach(tarih => {
+
+        const plakalar = gruplu[tarih].map(i => i.plaka);
+        const tekrarPlaka = plakalar.filter((item, i, arr) => arr.indexOf(item) !== i);
+
         const div = document.createElement('div');
         div.innerHTML = `<div class="date-label">${tarihBaslik(tarih)}</div>
         <table><thead><tr><th>PLAKA</th><th>MARKA</th><th>SAAT</th><th>AL/VER</th><th>NEREDEN</th><th>KİRA TARİHİ</th><th>İSİM</th><th>TELEFON</th><th>NOT</th><th>🛠️</th></tr></thead><tbody></tbody></table>`;
@@ -83,7 +94,7 @@
         gruplu[tarih].sort((a,b)=>a.saat.localeCompare(b.saat)).forEach(i => {
           const isUzak = ["DALAMAN","BODRUM","ÇEŞME","ANTALYA","İZMİR"].includes(i.lokasyon.toUpperCase());
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${i.plaka}</td><td>${i.marka}</td><td><input value="${i.saat}" data-id="${i.id}" class="guncelle" data-alan="saat"></td>
+          tr.innerHTML = `<td>${tekrarPlaka.includes(i.plaka) ? "🔁 " : ""}${i.plaka}</td><td>${i.marka}</td><td><span class="saat-goster">${i.saat}</span><input value="${i.saat}" data-id="${i.id}" class="guncelle saat-guncelle" data-alan="saat"></td>
           <td class="${i.alver==='AL'?'sari':'cyan'}">${i.alver}</td>
           <td class="${isUzak?'uzak':''}">${i.lokasyon}</td><td><input value="${i.tarih}" data-id="${i.id}" class="guncelle" data-alan="tarih"></td>
           <td>${i.isim}</td><td>${i.telefon}</td><td>${i.odeme}</td>
