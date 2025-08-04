@@ -5,194 +5,119 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rent a Car Listesi</title>
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #1e1e2f;
-      color: #f0f0f0;
-      margin: 0; padding: 0;
-    }
-    body.light {
-      background-color: #ffffff;
-      color: #000000;
-    }
-    .container { max-width: 1200px; margin: auto; padding: 1rem; }
-    header {
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    h1 { font-size: 1.5rem; color: #00bcd4; }
-    #toggle-theme {
-      font-size: 1.3rem;
-      background: none;
-      border: none;
-      color: #ffeb3b;
-      cursor: pointer;
-    }
-    form {
-      display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0;
-    }
-    form input, form select {
-      padding: 0.5rem;
-      flex: 1 1 180px;
-      background: #2c2c3e;
-      color: #fff;
-      border: 1px solid #444;
-      border-radius: 5px;
-    }
-    body.light form input, body.light form select {
-      background: #fff;
-      color: #000;
-    }
-    form button {
-      padding: 0.5rem 1rem;
-      background-color: #00bcd4;
-      color: #000;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .actions {
-      display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1rem;
-    }
-    .actions button {
-      padding: 0.5rem 1rem;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #clear-storage { background-color: #f44336; }
-    table { width: 100%; border-collapse: collapse; }
-    thead { background-color: #394264; }
-    body.light thead { background-color: #e0e0e0; color: #000; }
-    th, td {
-      border: 1px solid #555;
-      padding: 0.5rem;
-      text-align: center;
-    }
-    td.sari { background-color: #ffeb3b; color: #000; }
-    td.cyan { background-color: #00e5ff; color: #000; }
-    td.uzak { background-color: #ef5350; color: #fff; }
+    body { font-family: sans-serif; background:#1e1e2f; color:#fff; margin:0; padding:1rem; }
+    body.light { background:#fff; color:#000; }
+    form { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:1rem; }
+    input, select, button { padding:8px; border-radius:5px; border:none; }
+    input, select { flex:1 1 200px; background:#2c2c3e; color:#fff; }
+    body.light input, body.light select { background:#fff; color:#000; }
+    button { cursor:pointer; }
+    .cyan { background:#00e5ff; color:#000; }
+    .sari { background:#ffeb3b; color:#000; }
+    .uzak { background:#ef5350; color:#fff; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { border:1px solid #444; padding:6px; text-align:center; }
+    thead { background:#394264; }
+    body.light thead { background:#eee; color:#000; }
+    #op-tarih-goster { font-size:1.4rem; font-weight:bold; color:#f44336; margin:10px 0; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🚗 Rent a Car Listesi</h1>
-      <button id="toggle-theme" title="Tema Değiştir">💡</button>
-    </header>
-
-    <form id="entry-form">
-      <input type="text" id="plaka" placeholder="Plaka" required>
-      <input type="text" id="marka" placeholder="Marka / Model" required>
-      <input type="time" id="saat" required>
-      <select id="alver"><option value="AL">AL</option><option value="VER">VER</option></select>
-      <input type="text" id="lokasyon" placeholder="Nereden?" required>
-      <input type="text" id="tarih" placeholder="Kira Tarihi">
-      <input type="text" id="isim" placeholder="İsim Soyisim" required>
-      <input type="tel" id="telefon" placeholder="Telefon">
-      <input type="text" id="odeme" placeholder="Not / Ödeme Bilgisi">
-      <button type="submit">➕ Ekle</button>
-    </form>
-
-    <div class="actions">
-      <button id="export-pdf">📄 PDF'e Aktar</button>
-      <button id="clear-storage">🗑️ Tümünü Temizle</button>
-    </div>
-
-    <table id="liste">
-      <thead>
-        <tr><th>PLAKA</th><th>MARKA</th><th>SAAT</th><th>AL/VER</th><th>NEREDEN</th><th>KİRA TARİHİ</th><th>İSİM</th><th>TELEFON</th><th>NOT</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <h1>🚗 Rent a Car Listesi <button id="toggle-theme">💡</button></h1>
+  <form id="entry-form">
+    <input type="date" id="op-tarih" required title="Operasyon Tarihi">
+    <input type="text" id="plaka" placeholder="Plaka" required>
+    <input type="text" id="marka" placeholder="Marka / Model" required>
+    <input type="time" id="saat" required>
+    <select id="alver"><option value="AL">AL</option><option value="VER">VER</option></select>
+    <input type="text" id="lokasyon" placeholder="Nereden?" required>
+    <input type="text" id="tarih" placeholder="Kira Tarihi">
+    <input type="text" id="isim" placeholder="İsim Soyisim" required>
+    <input type="tel" id="telefon" placeholder="Telefon">
+    <input type="text" id="odeme" placeholder="Not / Ödeme Bilgisi">
+    <button type="submit">➕ Ekle</button>
+  </form>
+  <div class="actions">
+    <button id="export-pdf">📄 PDF'e Aktar</button>
+    <button id="clear-storage">🗑️ Tümünü Temizle</button>
   </div>
-
+  <div id="op-tarih-goster"></div>
+  <table id="liste">
+    <thead><tr><th>PLAKA</th><th>MARKA</th><th>SAAT</th><th>AL/VER</th><th>NEREDEN</th><th>KİRA TARİHİ</th><th>İSİM</th><th>TELEFON</th><th>NOT</th></tr></thead>
+    <tbody></tbody>
+  </table>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const form = document.getElementById('entry-form');
-      const liste = document.querySelector('#liste tbody');
-      const toggleTheme = document.getElementById('toggle-theme');
-      const clearBtn = document.getElementById('clear-storage');
-      const exportBtn = document.getElementById('export-pdf');
-      const uzakLokasyonlar = ['DALAMAN', 'BODRUM', 'ÇEŞME', 'ANTALYA', 'İZMİR'];
+    const opTarihInput = document.getElementById('op-tarih');
+    const opTarihGoster = document.getElementById('op-tarih-goster');
+    const liste = document.querySelector('#liste tbody');
+    const form = document.getElementById('entry-form');
 
-      function loadList() {
-        let data = localStorage.getItem('rentacar') || '[]';
-        let list = JSON.parse(data);
-        list.sort((a, b) => a.saat.localeCompare(b.saat));
-        liste.innerHTML = '';
-        const plakaCounter = {};
-        list.forEach(item => { plakaCounter[item.plaka] = (plakaCounter[item.plaka] || 0) + 1; });
-        list.forEach(item => {
-          const row = document.createElement('tr');
-          const isUzak = uzakLokasyonlar.includes(item.lokasyon.toUpperCase());
-          const isAL = item.alver === 'AL';
-          const isVER = item.alver === 'VER';
-          const isDouble = plakaCounter[item.plaka] > 1;
-          row.innerHTML = `
-            <td>${isDouble ? '➡️ ' : ''}${item.plaka}</td>
-            <td>${item.marka}</td>
-            <td>${item.saat}</td>
-            <td class="${isAL ? 'sari' : 'cyan'}">${item.alver}</td>
-            <td class="${isUzak ? 'uzak' : ''}">${item.lokasyon}</td>
-            <td class="${isVER ? 'cyan' : ''}">${item.tarih}</td>
-            <td>${item.isim}</td>
-            <td>${item.telefon}</td>
-            <td>${item.odeme}</td>
-          `;
-          liste.appendChild(row);
-        });
+    opTarihInput.addEventListener("change", () => {
+      const t = new Date(opTarihInput.value);
+      if (!isNaN(t)) {
+        const gunler = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+        const aylar = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        const gun = t.getDate().toString().padStart(2, '0');
+        const ay = aylar[t.getMonth()];
+        const yil = t.getFullYear();
+        const haftaGunu = gunler[t.getDay()];
+        opTarihGoster.innerText = `📅 ${gun} ${ay} ${yil} - ${haftaGunu}`;
       }
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const item = {
-          plaka: document.getElementById('plaka').value.trim(),
-          marka: document.getElementById('marka').value.trim(),
-          saat: document.getElementById('saat').value.trim(),
-          alver: document.getElementById('alver').value,
-          lokasyon: document.getElementById('lokasyon').value.trim(),
-          tarih: document.getElementById('tarih').value.trim(),
-          isim: document.getElementById('isim').value.trim(),
-          telefon: document.getElementById('telefon').value.trim(),
-          odeme: document.getElementById('odeme').value.trim()
-        };
-        let list = JSON.parse(localStorage.getItem('rentacar') || '[]');
-        list.push(item);
-        localStorage.setItem('rentacar', JSON.stringify(list));
-        form.reset();
-        loadList();
-      });
-
-      clearBtn.addEventListener('click', () => {
-        localStorage.removeItem('rentacar');
-        loadList();
-      });
-
-      toggleTheme.addEventListener('click', () => {
-        document.body.classList.toggle('light');
-      });
-
-      exportBtn.addEventListener('click', () => {
-        document.body.classList.add('light');
-        setTimeout(() => {
-          html2pdf().from(document.querySelector(".container")).set({
-            margin: 0.3,
-            filename: 'rentacar-listesi.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { orientation: 'landscape' }
-          }).save().then(() => {
-            document.body.classList.remove('light');
-          });
-        }, 300);
-      });
-
-      loadList();
     });
+
+    function loadList() {
+      let data = JSON.parse(localStorage.getItem('rentacar') || '[]');
+      data.sort((a,b)=>a.saat.localeCompare(b.saat));
+      liste.innerHTML = '';
+      const plakaSay = {};
+      data.forEach(i => plakaSay[i.plaka] = (plakaSay[i.plaka]||0)+1);
+      data.forEach(i => {
+        const tr = document.createElement('tr');
+        const isUzak = ["DALAMAN","BODRUM","ÇEŞME","ANTALYA","İZMİR"].includes(i.lokasyon.toUpperCase());
+        tr.innerHTML = `<td>${plakaSay[i.plaka]>1?'➡️ ':''}${i.plaka}</td>
+        <td>${i.marka}</td>
+        <td>${i.saat}</td>
+        <td class="${i.alver==='AL'?'sari':'cyan'}">${i.alver}</td>
+        <td class="${isUzak?'uzak':''}">${i.lokasyon}</td>
+        <td class="${i.alver==='VER'?'cyan':''}">${i.tarih}</td>
+        <td>${i.isim}</td>
+        <td>${i.telefon}</td>
+        <td>${i.odeme}</td>`;
+        liste.appendChild(tr);
+      });
+    }
+
+    form.onsubmit = e => {
+      e.preventDefault();
+      const yeni = {
+        plaka: form.plaka.value, marka: form.marka.value, saat: form.saat.value,
+        alver: form.alver.value, lokasyon: form.lokasyon.value,
+        tarih: form.tarih.value, isim: form.isim.value,
+        telefon: form.telefon.value, odeme: form.odeme.value
+      };
+      const liste = JSON.parse(localStorage.getItem('rentacar') || '[]');
+      liste.push(yeni);
+      localStorage.setItem('rentacar', JSON.stringify(liste));
+      form.reset(); loadList();
+    };
+
+    document.getElementById('toggle-theme').onclick = () => document.body.classList.toggle('light');
+    document.getElementById('clear-storage').onclick = () => { localStorage.removeItem('rentacar'); loadList(); };
+    document.getElementById('export-pdf').onclick = () => {
+      document.body.classList.add('light');
+      setTimeout(() => {
+        html2pdf().from(document.body).save().then(() => document.body.classList.remove('light'));
+      }, 300);
+    };
+    loadList();
   </script>
 </body>
 </html>
