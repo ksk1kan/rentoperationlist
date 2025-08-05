@@ -2,148 +2,313 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rent a Car Listesi</title>
-  <link rel="manifest" href="manifest.json">
-  <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js'); }</script>
+  <meta charset="UTF-8">
+  <title>FL Kasa Takip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; background:#1e1e2f; color:#fff; margin:0; padding:1rem; }
-    body.light { background:#fff; color:#000; }
-    form { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:1rem; }
-    input, select, button { padding:8px; border-radius:5px; border:none; }
-    input, select { flex:1 1 200px; background:#2c2c3e; color:#fff; }
-    body.light input, body.light select { background:#fff; color:#000; }
-    button { cursor:pointer; }
-    .cyan { background:#00e5ff; color:#000; }
-    .sari { background:#ffeb3b; color:#000; }
-    .uzak { background:#ef5350; color:#fff; }
-    table { width:100%; border-collapse:collapse; margin-bottom:1rem; }
-    th, td { border:1px solid #444; padding:6px; text-align:center; }
-    thead { background:#394264; }
-    body.light thead { background:#eee; color:#000; }
-    .date-label { font-size:1.3rem; font-weight:bold; color:#f44336; margin:1rem 0 0.5rem 0; }
-  
-@media print {
-  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .sari { background:#ffeb3b !important; color:#000 !important; }
-  .cyan { background:#00e5ff !important; color:#000 !important; }
-  .uzak { background:#ef5350 !important; color:#fff !important; }
-  thead { background:#394264 !important; color:#fff !important; }
-  .date-label { color:#f44336 !important; font-size:1.2rem !important; }
-  input, select, button, #entry-form, .actions, #toggle-theme { display:none !important; }
-}
-
-
-.saat-goster { display: none; }
-@media print {
-  .saat-guncelle { display: none !important; }
-  .saat-goster { display: inline-block !important; font-weight: bold; }
-}
-
-</style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #111;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: auto;
+    }
+    .box {
+      background: #1d1d1d;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,255,200,0.1);
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 10px;
+      border: none;
+      background: #333;
+      color: #fff;
+      box-shadow: 0 0 6px rgba(0,255,200,0.4);
+    }
+    button {
+      background-color: #00bfa6;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00e6ca;
+    }
+    .balance {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #ff4b4b;
+    }
+    .tables {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 20px;
+      overflow-x: auto;
+    }
+    .half {
+      flex: 1;
+      min-width: 640px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #444;
+      text-align: center;
+    }
+    th {
+      background: #00bfa6;
+      color: #fff;
+    }
+    .header-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .total-amount {
+      font-weight: bold;
+      font-size: 16px;
+      color: #ffd700;
+    }
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 2px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background-color: #00bfa6;
+      color: white;
+    }
+    #toplamHarcamalar {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ff4b4b;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>🚗 Rent a Car Listesi <button id="toggle-theme">💡</button></h1>
-  <form id="entry-form">
-    <input type="date" id="op-tarih" required title="Operasyon Tarihi">
-    <input type="text" id="plaka" placeholder="Plaka" required>
-    <input type="text" id="marka" placeholder="Marka / Model" required>
-    <input type="time" id="saat" required>
-    <select id="alver"><option value="AL">AL</option><option value="VER">VER</option></select>
-    <input type="text" id="lokasyon" placeholder="Nereden?" required>
-    <input type="text" id="tarih" placeholder="Kira Tarihi">
-    <input type="text" id="isim" placeholder="İsim Soyisim" required>
-    <input type="tel" id="telefon" placeholder="Telefon">
-    <input type="text" id="odeme" placeholder="Not / Ödeme Bilgisi">
-    <button type="submit">➕ Ekle</button>
-  </form>
-  <div class="actions">
-    <button id="export-pdf">📄 PDF'e Aktar</button>
-    <button id="clear-storage">🗑️ Tümünü Temizle</button>
+<div class="container">
+
+  <div class="box">
+    <h2>💰 Başlangıç Kasası</h2>
+    <input type="number" id="bakiye" placeholder="Örn: 1760" oninput="updateBalance(); saveLocal()">
+    <div class="balance" id="kalanKasa">Kalan Kasa: ₺0,00</div>
   </div>
-  <div id="listeler"></div>
-  <script>
-    const form = document.getElementById('entry-form');
-    const listelerDiv = document.getElementById('listeler');
 
-    function tarihBaslik(t) {
-      const d = new Date(t);
-      const gunler = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
-      const aylar = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-      return `📅 ${d.getDate()} ${aylar[d.getMonth()]} ${d.getFullYear()} - ${gunler[d.getDay()]}`;
+  <div class="box">
+    <h3>Yeni Harcama Ekle / Güncelle</h3>
+    <select id="kategori">
+      <option value="ofis">Ofis Harcaması</option>
+      <option value="rent">Rent A Car Harcaması</option>
+    </select>
+    <input type="date" id="tarih">
+    <input type="text" id="aciklama" placeholder="Açıklama">
+    <input type="number" id="tutar" placeholder="Tutar (₺)">
+    <select id="fis">
+      <option value="Var">Fiş Var</option>
+      <option value="Yok">Fiş Yok</option>
+    </select>
+    <button onclick="saveEntry()">💾 Kaydet</button>
+    <button onclick="resetAllData()">🗑️ Verileri Sıfırla</button>
+    <button onclick="downloadPDF()">📄 PDF'e Aktar</button>
+  </div>
+
+  <div class="tables" id="pdfArea">
+    <div class="box half">
+      <div class="header-title">
+        <h3>📁 Ofis Harcamaları</h3>
+        <div class="total-amount" id="ofisToplamGoster">Toplam: ₺0,00</div>
+      </div>
+      <table id="ofisTablosu">
+        <tr><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Fiş</th><th>İşlem</th></tr>
+      </table>
+    </div>
+
+    <div class="box half">
+      <div class="header-title">
+        <h3>🚗 Rent A Car Harcamaları</h3>
+        <div class="total-amount" id="rentToplamGoster">Toplam: ₺0,00</div>
+      </div>
+      <table id="rentTablosu">
+        <tr><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Fiş</th><th>İşlem</th></tr>
+      </table>
+    </div>
+  </div>
+
+  <div id="toplamHarcamalar">Toplam Harcama: ₺0,00</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  let selectedRow = null;
+  let ofisToplam = 0, rentToplam = 0;
+
+  function saveEntry() {
+    const kategori = document.getElementById("kategori").value;
+    const aciklama = document.getElementById("aciklama").value;
+    const tutar = parseFloat(document.getElementById("tutar").value);
+    const fis = document.getElementById("fis").value;
+    const tarih = document.getElementById("tarih").value || new Date().toLocaleDateString("tr-TR");
+
+    if (!aciklama || isNaN(tutar)) {
+      alert("Bilgiler eksik.");
+      return;
     }
 
-    function loadListeler() {
-      const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
-      const gruplu = {};
-      data.forEach(i => {
-        if (!gruplu[i.opTarih]) gruplu[i.opTarih] = [];
-        gruplu[i.opTarih].push(i);
-      });
-      listelerDiv.innerHTML = '';
-      Object.keys(gruplu).sort().forEach(tarih => {
+    const table = kategori === "ofis" ? document.getElementById("ofisTablosu") : document.getElementById("rentTablosu");
 
-        const plakalar = gruplu[tarih].map(i => i.plaka);
-        const tekrarPlaka = plakalar.filter((item, i, arr) => arr.indexOf(item) !== i);
-
-        const div = document.createElement('div');
-        div.innerHTML = `<div class="date-label">${tarihBaslik(tarih)}</div>
-        <table><thead><tr><th>PLAKA</th><th>MARKA</th><th>SAAT</th><th>AL/VER</th><th>NEREDEN</th><th>KİRA TARİHİ</th><th>İSİM</th><th>TELEFON</th><th>NOT</th><th>🛠️</th></tr></thead><tbody></tbody></table>`;
-        const tbody = div.querySelector('tbody');
-        gruplu[tarih].sort((a,b)=>a.saat.localeCompare(b.saat)).forEach(i => {
-          const isUzak = ["DALAMAN","BODRUM","ÇEŞME","ANTALYA","İZMİR"].includes(i.lokasyon.toUpperCase());
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${tekrarPlaka.includes(i.plaka) ? "🔁 " : ""}${i.plaka}</td><td>${i.marka}</td><td><span class="saat-goster">${i.saat}</span><input value="${i.saat}" data-id="${i.id}" class="guncelle saat-guncelle" data-alan="saat"></td>
-          <td class="${i.alver==='AL'?'sari':'cyan'}">${i.alver}</td>
-          <td class="${isUzak?'uzak':''}">${i.lokasyon}</td><td><input value="${i.tarih}" data-id="${i.id}" class="guncelle" data-alan="tarih"></td>
-          <td>${i.isim}</td><td>${i.telefon}</td><td>${i.odeme}</td>
-          <td><input type="date" value="${i.opTarih}" data-id="${i.id}" class="guncelle" data-alan="opTarih"></td>`;
-          tbody.appendChild(tr);
-        });
-        listelerDiv.appendChild(div);
-      });
-
-      document.querySelectorAll(".guncelle").forEach(inp => {
-        inp.addEventListener("change", e => {
-          const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
-          const id = inp.dataset.id;
-          const alan = inp.dataset.alan;
-          const yeni = inp.value;
-          const guncel = data.map(item => item.id === id ? { ...item, [alan]: yeni } : item);
-          localStorage.setItem('rentacar', JSON.stringify(guncel));
-          loadListeler();
-        });
-      });
+    if (selectedRow) {
+      selectedRow.cells[1].textContent = aciklama;
+      selectedRow.cells[2].textContent = `₺${tutar.toFixed(2)}`;
+      selectedRow.cells[3].textContent = fis;
+      selectedRow = null;
+    } else {
+      const row = table.insertRow();
+      row.innerHTML = `<td>${tarih}</td><td>${aciklama}</td><td>₺${tutar.toFixed(2)}</td><td>${fis}</td>
+        <td><button class="action-btn" onclick="editRow(this)">🖉</button>
+        <button class="action-btn" onclick="deleteRow(this)">🗑️</button></td>`;
     }
 
-    form.onsubmit = e => {
-      e.preventDefault();
-      const yeni = {
-        id: Date.now().toString(),
-        opTarih: form["op-tarih"].value,
-        plaka: form.plaka.value, marka: form.marka.value, saat: form.saat.value,
-        alver: form.alver.value, lokasyon: form.lokasyon.value,
-        tarih: form.tarih.value, isim: form.isim.value,
-        telefon: form.telefon.value, odeme: form.odeme.value
-      };
-      const liste = JSON.parse(localStorage.getItem('rentacar') || '[]');
-      liste.push(yeni);
-      localStorage.setItem('rentacar', JSON.stringify(liste));
-      form.reset(); loadListeler();
-    };
+    if (kategori === "ofis") ofisToplam += tutar;
+    else rentToplam += tutar;
 
-    document.getElementById('toggle-theme').onclick = () => document.body.classList.toggle('light');
-    document.getElementById('clear-storage').onclick = () => { localStorage.removeItem('rentacar'); loadListeler(); };
-    document.getElementById('export-pdf').onclick = () => {
-      document.body.classList.add('light');
-      setTimeout(() => {
-        window.print();
-        document.body.classList.remove('light');
-      }, 300);
-    };
+    updateBalance();
+    saveLocal();
+    document.getElementById("aciklama").value = "";
+    document.getElementById("tutar").value = "";
+    sortTableByDate(table);
 
-    loadListeler();
-  </script>
+  }
+
+  function editRow(btn) {
+    selectedRow = btn.parentElement.parentElement;
+    document.getElementById("aciklama").value = selectedRow.cells[1].textContent;
+    document.getElementById("tutar").value = selectedRow.cells[2].textContent.replace("₺", "");
+    document.getElementById("fis").value = selectedRow.cells[3].textContent;
+  }
+
+  function deleteRow(btn) {
+    const row = btn.parentElement.parentElement;
+    const tutar = parseFloat(row.cells[2].textContent.replace("₺", ""));
+    const isOfis = row.parentElement.parentElement.id === "ofisTablosu";
+    row.remove();
+
+    if (isOfis) ofisToplam -= tutar;
+    else rentToplam -= tutar;
+
+    updateBalance();
+    saveLocal();
+  }
+
+  function updateBalance() {
+    const bakiye = parseFloat(document.getElementById("bakiye").value) || 0;
+    const kalan = bakiye - (ofisToplam + rentToplam);
+    const toplam = ofisToplam + rentToplam;
+    document.getElementById("kalanKasa").textContent = `Kalan Kasa: ₺${kalan.toFixed(2)}`;
+    document.getElementById("ofisToplamGoster").textContent = `Toplam: ₺${ofisToplam.toFixed(2)}`;
+    document.getElementById("rentToplamGoster").textContent = `Toplam: ₺${rentToplam.toFixed(2)}`;
+    document.getElementById("toplamHarcamalar").textContent = `Toplam Harcama: ₺${toplam.toFixed(2)}`;
+  }
+
+  function saveLocal() {
+    const data = {
+      bakiye: document.getElementById("bakiye").value,
+      ofis: document.getElementById("ofisTablosu").innerHTML,
+      rent: document.getElementById("rentTablosu").innerHTML,
+      ofisToplam,
+      rentToplam
+    };
+    localStorage.setItem("kasaData", JSON.stringify(data));
+  }
+
+  function loadLocal() {
+    const data = JSON.parse(localStorage.getItem("kasaData"));
+    if (data) {
+      document.getElementById("bakiye").value = data.bakiye;
+      document.getElementById("ofisTablosu").innerHTML = data.ofis;
+      document.getElementById("rentTablosu").innerHTML = data.rent;
+      ofisToplam = data.ofisToplam || 0;
+      rentToplam = data.rentToplam || 0;
+      updateBalance();
+    }
+  }
+
+  async function downloadPDF() {
+    const area = document.getElementById("pdfArea");
+    const canvas = await html2canvas(area, { scale: 3, width: area.scrollWidth });
+    const imgData = canvas.toDataURL("image/png");
+    const toplamYazi = document.getElementById("toplamHarcamalar").textContent;
+
+    const pdf = new window.jspdf.jsPDF("landscape", "pt", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const imgProps = { width: canvas.width, height: canvas.height };
+    const ratio = pdfWidth / imgProps.width;
+    const pdfHeight = imgProps.height * ratio;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(18);
+    pdf.setTextColor(255, 0, 0);
+    pdf.text(toplamYazi, pdfWidth / 2, pdfHeight + 30, { align: "center" });
+    pdf.save("harcamalar-raporu.pdf");
+  }
+
+  
+  function resetAllData() {
+    if (confirm("Tüm harcama kayıtları silinecek. Emin misin?")) {
+      document.getElementById("ofisTablosu").innerHTML = "<tr><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Fiş</th><th>İşlem</th></tr>";
+      document.getElementById("rentTablosu").innerHTML = "<tr><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Fiş</th><th>İşlem</th></tr>";
+      ofisToplam = 0;
+      rentToplam = 0;
+      updateBalance();
+      saveLocal();
+    }
+  }
+
+  
+  function exportToExcel() {
+    const wb = XLSX.utils.book_new();
+    const ofisTable = document.getElementById("ofisTablosu");
+    const rentTable = document.getElementById("rentTablosu");
+    const ofisSheet = XLSX.utils.table_to_sheet(ofisTable);
+    const rentSheet = XLSX.utils.table_to_sheet(rentTable);
+    XLSX.utils.book_append_sheet(wb, ofisSheet, "Ofis Harcamaları");
+    XLSX.utils.book_append_sheet(wb, rentSheet, "Rent A Car Harcamaları");
+    XLSX.writeFile(wb, "kasa-harcamalari.xlsx");
+  }
+
+  
+  function sortTableByDate(table) {
+    const rows = Array.from(table.rows).slice(1);
+    rows.sort((a, b) => {
+      const dateA = new Date(a.cells[0].textContent.split('.').reverse().join('-'));
+      const dateB = new Date(b.cells[0].textContent.split('.').reverse().join('-'));
+      return dateA - dateB;
+    });
+    rows.forEach(row => table.appendChild(row));
+  }
+
+  window.onload = loadLocal;
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
