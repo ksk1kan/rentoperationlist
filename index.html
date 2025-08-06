@@ -22,156 +22,151 @@
     thead { background:#394264; }
     body.light thead { background:#eee; color:#000; }
     .date-label { font-size:1.3rem; font-weight:bold; color:#f44336; margin:1rem 0 0.5rem 0; }
-
-@media print {
-  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .sari { background:#ffeb3b !important; color:#000 !important; }
-  .cyan { background:#00e5ff !important; color:#000 !important; }
-  .uzak { background:#ef5350 !important; color:#fff !important; }
-  thead { background:#394264 !important; color:#fff !important; }
-  .date-label { color:#f44336 !important; font-size:1.2rem !important; }
-  input, select, button, #entry-form, .actions, #toggle-theme { display:none !important; }
-}
-
-.saat-goster { display: none; }
-@media print {
-  .saat-guncelle { display: none !important; }
-  .saat-goster { display: inline-block !important; font-weight: bold; }
-}
-
-.tamamlandi td {
-  opacity: 0.4;
-  text-decoration: line-through;
-}
-
-</style>
+    .tamamlandi td { opacity: 0.4; text-decoration: line-through; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .sari { background:#ffeb3b !important; color:#000 !important; }
+      .cyan { background:#00e5ff !important; color:#000 !important; }
+      .uzak { background:#ef5350 !important; color:#fff !important; }
+      thead { background:#394264 !important; color:#fff !important; }
+      .date-label { color:#f44336 !important; font-size:1.2rem !important; }
+      input, select, button, #entry-form, .actions, #toggle-theme { display:none !important; }
+    }
+    .saat-goster { display: none; }
+    @media print {
+      .saat-guncelle { display: none !important; }
+      .saat-goster { display: inline-block !important; font-weight: bold; }
+    }
+  </style>
 </head>
 <body>
-<h1>🚗 Rent a Car Listesi <button id="toggle-theme">💡</button></h1>
-<form id="entry-form">
-  <input type="date" id="op-tarih" required title="Operasyon Tarihi">
-  <input type="text" id="plaka" placeholder="Plaka" required>
-  <input type="text" id="marka" placeholder="Marka / Model" required>
-  <input type="time" id="saat" required>
-  <select id="alver"><option value="AL">AL</option><option value="VER">VER</option></select>
-  <input type="text" id="lokasyon" placeholder="Nereden?" required>
-  <input type="text" id="tarih" placeholder="Kira Tarihi">
-  <input type="text" id="isim" placeholder="İsim Soyisim" required>
-  <input type="tel" id="telefon" placeholder="Telefon">
-  <input type="text" id="odeme" placeholder="Not / Ödeme Bilgisi">
-  <button type="submit">➕ Ekle</button>
-</form>
-<div class="actions">
-  <button id="export-pdf">📄 PDF'e Aktar</button>
-  <button id="clear-storage">🗑️ Tümünü Temizle</button>
-</div>
-<div id="listeler"></div>
-
-<script>
-const form = document.getElementById('entry-form');
-const listelerDiv = document.getElementById('listeler');
-
-function tarihBaslik(t) {
-  const d = new Date(t);
-  const gunler = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
-  const aylar = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-  return `📅 ${d.getDate()} ${aylar[d.getMonth()]} ${d.getFullYear()} - ${gunler[d.getDay()]}`;
-}
-
-function loadListeler() {
-  const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
-  const gruplu = {};
-  data.forEach(i => {
-    if (!gruplu[i.opTarih]) gruplu[i.opTarih] = [];
-    gruplu[i.opTarih].push(i);
-  });
-  listelerDiv.innerHTML = '';
-  Object.keys(gruplu).sort().forEach(tarih => {
-    const plakalar = gruplu[tarih].map(i => i.plaka);
-    const tekrarPlaka = plakalar.filter((item, i, arr) => arr.indexOf(item) !== i);
-
-    const div = document.createElement('div');
-    div.innerHTML = `<div class="date-label">${tarihBaslik(tarih)}</div>
-    <table><thead><tr><th>✔</th><th>PLAKA</th><th>MARKA</th><th>SAAT</th><th>AL/VER</th><th>NEREDEN</th><th>KİRA TARİHİ</th><th>İSİM</th><th>TELEFON</th><th>NOT</th><th>🛠️</th></tr></thead><tbody></tbody></table>`;
-    const tbody = div.querySelector('tbody');
-    gruplu[tarih].sort((a,b)=>a.saat.localeCompare(b.saat)).forEach(i => {
-      const isUzak = ["DALAMAN","BODRUM","ÇEŞME","ANTALYA","İZMİR"].includes(i.lokasyon.toUpperCase());
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><input type="checkbox" class="tamamla-cb" data-id="${i.id}" ${i.tamamlandi?"checked":""}></td><td>${tekrarPlaka.includes(i.plaka) ? "🔁 " : ""}${i.plaka}</td><td>${i.marka}</td><td><span class="saat-goster">${i.saat}</span><input value="${i.saat}" data-id="${i.id}" class="guncelle saat-guncelle" data-alan="saat"></td>
-      <td class="${i.alver==='AL'?'sari':'cyan'}">${i.alver}</td>
-      <td class="${isUzak?'uzak':''}">${i.lokasyon}</td><td><span class="tarih-goster">${i.tarih}</span><input value="${i.tarih}" data-id="${i.id}" class="guncelle tarih-guncelle" data-alan="tarih"></td>
-      <td>${i.isim}</td><td>${i.telefon}</td><td>${i.odeme}</td>
-      <td><input type="date" value="${i.opTarih}" data-id="${i.id}" class="guncelle" data-alan="opTarih"> <button class="sil-btn" data-id="${i.id}">❌</button></td>`;
-      if (i.tamamlandi) tr.classList.add("tamamlandi");
-      tbody.appendChild(tr);
-    });
-    listelerDiv.appendChild(div);
-  });
-
-  document.querySelectorAll(".guncelle").forEach(inp => {
-    inp.addEventListener("change", e => {
+  <h1>🚗 Rent a Car Listesi <button id="toggle-theme">💡</button></h1>
+  <form id="entry-form">
+    <input type="date" id="op-tarih" required title="Operasyon Tarihi">
+    <input type="text" id="plaka" placeholder="Plaka" required>
+    <input type="text" id="marka" placeholder="Marka / Model" required>
+    <input type="time" id="saat" required>
+    <select id="alver"><option value="AL">AL</option><option value="VER">VER</option></select>
+    <input type="text" id="lokasyon" placeholder="Nereden?" required>
+    <input type="text" id="tarih" placeholder="Kira Tarihi">
+    <input type="text" id="isim" placeholder="İsim Soyisim" required>
+    <input type="tel" id="telefon" placeholder="Telefon">
+    <input type="text" id="odeme" placeholder="Not / Ödeme Bilgisi">
+    <button type="submit">➕ Ekle</button>
+  </form>
+  <div class="actions">
+    <button id="export-pdf">📄 PDF'e Aktar</button>
+    <button id="clear-storage">🗑️ Tümünü Temizle</button>
+  </div>
+  <div id="listeler"></div>
+  <script>
+    const form = document.getElementById('entry-form');
+    const listelerDiv = document.getElementById('listeler');
+    function tarihBaslik(t) {
+      const d = new Date(t);
+      const gunler = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+      const aylar = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+      return `📅 ${d.getDate()} ${aylar[d.getMonth()]} ${d.getFullYear()} - ${gunler[d.getDay()]}`;
+    }
+    function loadListeler() {
       const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
-      const id = inp.dataset.id;
-      const alan = inp.dataset.alan;
-      const yeni = inp.value;
-      const guncel = data.map(item => item.id === id ? { ...item, [alan]: yeni } : item);
-      localStorage.setItem('rentacar', JSON.stringify(guncel));
-      loadListeler();
-    });
-  });
+      const gruplu = {};
+      data.forEach(i => {
+        if (!gruplu[i.opTarih]) gruplu[i.opTarih] = [];
+        gruplu[i.opTarih].push(i);
+      });
+      listelerDiv.innerHTML = '';
+      Object.keys(gruplu).sort().forEach(tarih => {
+        const plakalar = gruplu[tarih].map(i => i.plaka);
+        const tekrarPlaka = plakalar.filter((item, i, arr) => arr.indexOf(item) !== i);
+        const div = document.createElement('div');
+        div.innerHTML = `<div class="date-label">${tarihBaslik(tarih)}</div>
+        <table><thead><tr><th>✔</th><th>PLAKA</th><th>MARKA</th><th>SAAT</th><th>AL/VER</th><th>NEREDEN</th><th>KİRA TARİHİ</th><th>İSİM</th><th>TELEFON</th><th>NOT</th><th>🛠️</th></tr></thead><tbody></tbody></table>`;
+        const tbody = div.querySelector('tbody');
+        gruplu[tarih].sort((a,b)=>a.saat.localeCompare(b.saat)).forEach(i => {
+          const isUzak = ["DALAMAN","BODRUM","ÇEŞME","ANTALYA","İZMİR"].includes(i.lokasyon.toUpperCase());
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><input type="checkbox" class="tamamla-cb" data-id="${i.id}" ${i.tamamlandi ? "checked" : ""}></td>
+            <td>${tekrarPlaka.includes(i.plaka) ? "🔁 " : ""}${i.plaka}</td>
+            <td>${i.marka}</td>
+            <td><span class="saat-goster">${i.saat}</span><input value="${i.saat}" data-id="${i.id}" class="guncelle saat-guncelle" data-alan="saat"></td>
+            <td class="${i.alver === 'AL' ? 'sari' : 'cyan'}">${i.alver}</td>
+            <td class="${isUzak ? 'uzak' : ''}">${i.lokasyon}</td>
+            <td><span class="tarih-goster">${i.tarih}</span><input value="${i.tarih}" data-id="${i.id}" class="guncelle tarih-guncelle" data-alan="tarih"></td>
+            <td>${i.isim}</td>
+            <td>${i.telefon}</td>
+            <td><input value="${i.odeme}" data-id="${i.id}" class="guncelle" data-alan="odeme"></td>
+            <td><input type="date" value="${i.opTarih}" data-id="${i.id}" class="guncelle" data-alan="opTarih"> <button class="sil-btn" data-id="${i.id}">❌</button></td>`;
+          if (i.tamamlandi) tr.classList.add("tamamlandi");
+          tbody.appendChild(tr);
+        });
+        listelerDiv.appendChild(div);
+      });
 
-  document.querySelectorAll(".sil-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
-      const id = btn.dataset.id;
-      const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
-      const yeniData = data.filter(item => item.id !== id);
-      localStorage.setItem('rentacar', JSON.stringify(yeniData));
-      loadListeler();
-    });
-  });
+      document.querySelectorAll(".guncelle").forEach(inp => {
+        inp.addEventListener("change", () => {
+          const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
+          const id = inp.dataset.id;
+          const alan = inp.dataset.alan;
+          const yeni = inp.value;
+          const guncel = data.map(item => item.id === id ? { ...item, [alan]: yeni } : item);
+          localStorage.setItem('rentacar', JSON.stringify(guncel));
+          loadListeler();
+        });
+      });
 
-  document.querySelectorAll(".tamamla-cb").forEach(cb => {
-    cb.addEventListener("change", e => {
-      const id = cb.dataset.id;
-      const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
-      const yeniData = data.map(item =>
-        item.id === id ? { ...item, tamamlandi: cb.checked } : item
-      );
-      localStorage.setItem('rentacar', JSON.stringify(yeniData));
-      loadListeler();
-    });
-  });
-}
+      document.querySelectorAll(".sil-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
+          const yeniData = data.filter(item => item.id !== id);
+          localStorage.setItem('rentacar', JSON.stringify(yeniData));
+          loadListeler();
+        });
+      });
 
-form.onsubmit = e => {
-  e.preventDefault();
-  const yeni = {
-    id: Date.now().toString(),
-    opTarih: form["op-tarih"].value,
-    plaka: form.plaka.value, marka: form.marka.value, saat: form.saat.value,
-    alver: form.alver.value, lokasyon: form.lokasyon.value,
-    tarih: form.tarih.value, isim: form.isim.value,
-    telefon: form.telefon.value, odeme: form.odeme.value,
-    tamamlandi: false
-  };
-  const liste = JSON.parse(localStorage.getItem('rentacar') || '[]');
-  liste.push(yeni);
-  localStorage.setItem('rentacar', JSON.stringify(liste));
-  form.reset(); loadListeler();
-};
+      document.querySelectorAll(".tamamla-cb").forEach(cb => {
+        cb.addEventListener("change", () => {
+          const id = cb.dataset.id;
+          const data = JSON.parse(localStorage.getItem('rentacar') || '[]');
+          const yeniData = data.map(item =>
+            item.id === id ? { ...item, tamamlandi: cb.checked } : item
+          );
+          localStorage.setItem('rentacar', JSON.stringify(yeniData));
+          loadListeler();
+        });
+      });
+    }
 
-document.getElementById('toggle-theme').onclick = () => document.body.classList.toggle('light');
-document.getElementById('clear-storage').onclick = () => { localStorage.removeItem('rentacar'); loadListeler(); };
-document.getElementById('export-pdf').onclick = () => {
-  document.body.classList.add('light');
-  setTimeout(() => {
-    window.print();
-    document.body.classList.remove('light');
-  }, 300);
-};
+    form.onsubmit = e => {
+      e.preventDefault();
+      const yeni = {
+        id: Date.now().toString(),
+        opTarih: form["op-tarih"].value,
+        plaka: form.plaka.value, marka: form.marka.value, saat: form.saat.value,
+        alver: form.alver.value, lokasyon: form.lokasyon.value,
+        tarih: form.tarih.value, isim: form.isim.value,
+        telefon: form.telefon.value, odeme: form.odeme.value,
+        tamamlandi: false
+      };
+      const liste = JSON.parse(localStorage.getItem('rentacar') || '[]');
+      liste.push(yeni);
+      localStorage.setItem('rentacar', JSON.stringify(liste));
+      form.reset(); loadListeler();
+    };
 
-loadListeler();
-</script>
+    document.getElementById('toggle-theme').onclick = () => document.body.classList.toggle('light');
+    document.getElementById('clear-storage').onclick = () => { localStorage.removeItem('rentacar'); loadListeler(); };
+    document.getElementById('export-pdf').onclick = () => {
+      document.body.classList.add('light');
+      setTimeout(() => {
+        window.print();
+        document.body.classList.remove('light');
+      }, 300);
+    };
 
+    loadListeler();
+  </script>
 </body>
 </html>
